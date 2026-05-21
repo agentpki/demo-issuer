@@ -1,0 +1,21 @@
+name = "agentpki-demo-issuer"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+workers_dev = true
+
+# Custom domain — wrangler will auto-create the DNS record under your
+# agentpki.dev zone on first deploy (zone is on CF DNS because you bought
+# the domain via Cloudflare Registrar).
+#
+# This domain is REQUIRED for cross-Worker fetches to work: when the
+# verifier fetches /.well-known/agentpki-issuer.json from another Worker
+# on the same account via *.workers.dev, Cloudflare's same-account routing
+# returns 404. Custom domains route through the public edge and work.
+[[routes]]
+pattern = "demo.agentpki.dev"
+zone_name = "agentpki.dev"
+custom_domain = true
+
+[vars]
+SPEC_URL = "https://agentpki.dev/spec/v0.1"
+ISSUER_NAME = "AgentPKI Demo Issuer"
