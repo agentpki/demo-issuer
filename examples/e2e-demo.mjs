@@ -22,7 +22,7 @@ const DEMO_ISSUER =
 
 const VERIFIER =
   process.env.VERIFIER_URL ??
-  'https://agentpki-verifier.agentpki-verifier.workers.dev';
+  'https://verify.agentpki.dev';
 
 const c = {
   bold: (s) => `\x1b[1m${s}\x1b[0m`,

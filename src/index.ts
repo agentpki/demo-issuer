@@ -24,7 +24,7 @@ const CORS: Record<string, string> = {
   'Access-Control-Max-Age': '86400',
 };
 
-const VERIFIER_URL = 'https://agentpki-verifier.agentpki-verifier.workers.dev';
+const VERIFIER_URL = 'https://verify.agentpki.dev';
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
