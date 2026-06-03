@@ -10,7 +10,7 @@
 
 import { signPassport, util } from '@agentpki/sdk';
 import { buildIssuerDirectory } from './directory.js';
-import { DEMO_KEY_ID, DEMO_PRIVATE_KEY } from './keys.js';
+import { DEMO_KEY_ID, DEMO_PRIVATE_KEY, DEMO_REVOKED_KEY_ID } from './keys.js';
 
 export interface Env {
   SPEC_URL: string;
@@ -126,6 +126,18 @@ async function handleMint(req: Request, url: URL, issuer: string): Promise<Respo
   const now = Math.floor(Date.now() / 1000);
   const jti = util.randomHex(16);
 
+  // ─── Demo flag: mint with the revoked-rotated kid.
+  // Signature is still mathematically valid (we use the same private key),
+  // but the kid is listed in the directory's `revoked_keys` so the
+  // verifier returns failure_reason "revoked_key". This demonstrates the
+  // CRL/key-rotation story without requiring a separate revoked private
+  // key (no need for additional secret material).
+  const isRevoked =
+    params['revoked'] === '1' ||
+    params['revoked'] === 1 ||
+    params['revoked'] === true;
+  const kidToUse = isRevoked ? DEMO_REVOKED_KEY_ID : DEMO_KEY_ID;
+
   const token = signPassport(
     {
       v: 1,
@@ -137,7 +149,7 @@ async function handleMint(req: Request, url: URL, issuer: string): Promise<Respo
       tier: 1,
       scope,
     },
-    { privateKey: DEMO_PRIVATE_KEY, kid: DEMO_KEY_ID },
+    { privateKey: DEMO_PRIVATE_KEY, kid: kidToUse },
   );
 
   return json(
@@ -151,9 +163,10 @@ async function handleMint(req: Request, url: URL, issuer: string): Promise<Respo
         jti,
         tier: 1,
         scope,
-        kid: DEMO_KEY_ID,
+        kid: kidToUse,
       },
       expires_in: lifetime,
+      revoked_kid: isRevoked ? true : undefined,
       try_verify: `curl -s ${VERIFIER_URL}/v1/verify -X POST -H 'content-type: application/json' -d '${JSON.stringify({ token })}'`,
     },
     200,
